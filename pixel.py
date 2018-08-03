@@ -8,6 +8,16 @@ app = Flask(__name__)
 
 Articles = Articles()
 
+# MySQL Config
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'mysqlpass123*'
+app.config['MYSQL_DB'] = 'pixelapp'
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+
+# Init MySQL
+mysql = MySQL(app)
+
 @app.route('/')
 def index():
     return render_template('home.html')
@@ -38,8 +48,28 @@ class RegisterForm(Form):
 def register():
     form = RegisterForm(request.form)
     if request.method == 'POST' and form.validate():
-        return render_template('register.html', form = form)
+        name = form.name.data
+        email = form.email.data
+        username = form.email.data
+        password = sha256_crypt.encrypt(str(form.password.data))
+
+        # Create cursor
+        cur = mysql.connection.cursor()
+
+        cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", (name, email, username, password))        
+
+        # Commit to DB
+        mysql.connection.commit()
+
+        # Close connection
+        cur.close()
+
+        flash('You are now registered and can log in', 'success')
+
+        return redirect(url_for('index'))
+
     return render_template('register.html', form = form)
 
 if __name__ == '__main__':
+    app.secret_key='mysqlpass123*'
     app.run(debug=True)
