@@ -1,3 +1,6 @@
-# python-resume
+Python basic template for articles/blog website
 
-Python Flask Project for Resume
+created using:
+Python-flask
+WTForm
+MySQL
